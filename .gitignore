@@ -1,13 +1,15 @@
-# Virtual Environment
+# Python virtual environment
 venv/
-*.venv/
 
-# Secret keys
+# Secret API keys
 .env
 
-# Local Databases
+# Local database
 chroma_db/
 
 # Python cache
-__pycache__/
-*.pyc
+backend/__pycache__/
+
+# Temporary audio files
+*.wav
+*.mp3
