@@ -1,0 +1,13 @@
+# Virtual Environment
+venv/
+*.venv/
+
+# Secret keys
+.env
+
+# Local Databases
+chroma_db/
+
+# Python cache
+__pycache__/
+*.pyc
