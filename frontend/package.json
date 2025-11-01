@@ -1,0 +1,27 @@
+{
+  "name": "lumi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sauravX7/LUMI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sauravX7/LUMI/issues"
+  },
+  "homepage": "https://github.com/sauravX7/LUMI#readme",
+  "devDependencies": {
+    "electron": "^39.0.0"
+  },
+  "dependencies": {
+    "three": "^0.181.0"
+  }
+}

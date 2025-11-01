@@ -1,0 +1,115 @@
+/* --- Force the HTML and Body to fill the entire window --- */
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: transparent;
+}
+
+/* --- UI Orb Layout --- */
+#lumi-ui {
+    width: 300px;
+    height: 300px;
+    position: absolute;
+    top: 20px;          /* 20px from the top */
+    left: 50%;          /* 50% from the left */
+    transform: translateX(-50%); /* Center it horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10; 
+}
+
+/* --- THIS IS THE FIX --- */
+/* --- Response Box Layout --- */
+#response-box {
+    position: absolute;
+    bottom: 20px;     /* 20px from the bottom */
+    right: auto;      /* 20px from the right */
+    left: 20px;       /* Unset the left position */
+    width: 600px; 
+    height: 400px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 10px;
+    color: white;
+    padding: 15px;
+    font-size: 14px;
+    overflow-y: auto;
+    opacity: 1; 
+    z-index: 10; 
+}
+/* --- END OF FIX --- */
+
+
+/* --- LUMI Orb Styles --- */
+#lumi-text {
+    color: #00e5ff;
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+}
+
+.ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #00e5ff;
+    opacity: 0.5;
+    pointer-events: none; 
+}
+
+/* Animations */
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@keyframes spin-fast {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+.ring-1 {
+    width: 200px;
+    height: 200px;
+    border-style: dashed;
+    animation: spin-slow 40s linear infinite;
+}
+.ring-2 {
+    width: 250px;
+    height: 250px;
+    animation: spin-fast 15s linear infinite;
+}
+.ring-3 {
+    width: 300px;
+    height: 300px;
+    opacity: 0.3;
+    border-style: dotted;
+    animation: spin-slow 50s linear infinite;
+}
+
+/* Listening State */
+#lumi-ui.listening #lumi-text {
+    color: #ff4d4d;
+    text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
+}
+#lumi-ui.listening .ring {
+    border-color: #ff4d4d;
+    opacity: 1.0;
+}
+
+/* Chat Message Styles */
+.user-message {
+    color: #00e5ff; /* Blue for user */
+    font-weight: bold;
+    margin: 4px 0;
+}
+.ai-message {
+    color: white;
+    margin: 4px 0 12px 0; /* Add space after AI message */
+}

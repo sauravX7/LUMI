@@ -1,0 +1,20 @@
+# Python virtual environment
+venv/
+
+# Secret API keys
+.env
+
+# Local database
+chroma_db/
+
+# Python cache
+backend/__pycache__/
+
+# Temporary audio files
+*.wav
+*.mp3
+
+# Frontend/Node.js Artifacts
+frontend/node_modules/
+frontend/package-lock.json
+
