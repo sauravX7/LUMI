@@ -35,14 +35,7 @@ html, body {
     100% { text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff; }
 }
 
-@keyframes rotate-highlight {
-    0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
+
 
 /* --- Global Chat Message Styles --- */
 .user-message {

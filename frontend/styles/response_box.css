@@ -12,7 +12,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px); /* For Electron/Safari */
     
-    /* 2. The Translucent Background */
+    /* 2. The Translucent Background (like the Rive video) */
     background-color: rgba(255, 255, 255, 0.08);
     
     /* 3. The Subtle Border */
@@ -24,29 +24,7 @@
     color: white;
     padding: 15px;
     font-size: 14px;
-    overflow: hidden; /* <-- IMPORTANT: Hides the highlight overflow */
+    overflow: hidden; /* <-- IMPORTANT: Hides highlight if we add it */
     opacity: 1; 
     z-index: 10; 
 }
-
-/* --- NEW: Animated Highlight (like the video) --- */
-#response-box::after {
-    content: '';
-    position: absolute;
-    width: 500px; 
-    height: 500px;
-    
-    /* A soft, cone-shaped light source */
-    background: conic-gradient(
-        from 180deg at 50% 50%,
-        rgba(255, 255, 255, 0.3) 0%, /* Bright center */
-        rgba(255, 255, 255, 0) 30%   /* Fades to transparent */
-    );
-    
-    /* Position it in the center and animate it */
-    top: 50%;
-    left: 50%;
-    z-index: -1; /* Place it *behind* the text */
-    animation: rotate-highlight 10s linear infinite;
-}
-/* --- END NEW --- */
