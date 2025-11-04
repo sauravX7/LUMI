@@ -21,10 +21,13 @@ import time
 import sounddevice as sd
 import scipy.io.wavfile as wavfile
 import google.generativeai as genai
-import threading # <-- We still need this for the *timer*
+import threading 
 import shlex
 
 from backend import brain 
+# --- NEW: Import the speak tool ---
+from backend import speak_tool
+# ---
 
 # --- 1. Initialize Flask App ---
 app = Flask(__name__)
@@ -42,22 +45,7 @@ print("--- Server Initialized ---")
 
 # --- 4. Define Core Functions ---
 
-def speak(text_to_speak):
-    """
-    This function is now SIMPLE and BLOCKING.
-    It will stop the server from doing anything else until
-    the speech is 100% finished.
-    """
-    print(f"Companion: {text_to_speak}")
-    try:
-        sanitized_text = text_to_speak.replace('\n', ' ')
-        # Use subprocess.run() to wait for the command to complete
-        subprocess.run(["say", sanitized_text], check=True)
-    except Exception as e:
-        print(f"Error in 'say' command playback: {e}")
-    
-    # --- NO THREADING for this function ---
-
+# --- The 'speak' function is GONE from server.py ---
 
 def record_and_transcribe(filename="temp_audio.wav", duration=5, fs=44100):
     print("Recording...")
@@ -87,12 +75,11 @@ def record_and_transcribe(filename="temp_audio.wav", duration=5, fs=44100):
         return None
 
 # --- 5. Create the API Endpoint (Updated) ---
-
 @app.route('/listen', methods=['POST'])
 def handle_listen():
     user_input = record_and_transcribe()
     if not user_input:
-        speak("Sorry, I didn't catch that.")
+        speak_tool.speak("Sorry, I didn't catch that.")
         return jsonify({"status": "error", "message": "No input detected", "user_text": ""})
 
     print(f"You: {user_input}")
@@ -100,15 +87,15 @@ def handle_listen():
     response_object = brain.get_ai_response(user_input)
     response_object['user_text'] = user_input
     
-    # This call will now HALT the function until speaking is done
-    speak(response_object["summary_text"])
+    # --- NEW: Use the speak tool ---
+    # We run this in a thread so the server can respond to the UI *while* speaking.
+    threading.Thread(target=speak_tool.speak, args=(response_object["summary_text"],)).start()
     
-    # This will only run AFTER the speech is finished
     return jsonify(response_object)
 
 # --- 6. Run the Server ---
-
 if __name__ == "__main__":
     print("Starting Flask server... (Speak 'online' message)")
-    speak("Lumi is online,here to help")
+    # Use the tool for the startup message
+    threading.Thread(target=speak_tool.speak, args=("Lumi is online, here to help",)).start()
     app.run(port=5001, debug=False)
