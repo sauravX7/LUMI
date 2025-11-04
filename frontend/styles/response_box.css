@@ -1,30 +1,94 @@
-/* --- Response Box Layout --- */
+/* 1. The Main Wrapper (A "Clipping Mask") */
 #response-box {
     position: absolute;
     bottom: 20px;
-    right: 20px;
-    width: 400px; 
-    height: 250px;
+    left: 20px;
+    width: 500px;
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden; /* This clips the glow and all children */
+    z-index: 10;
     
-    /* --- THIS IS THE FIX: Frosted Glass Effect --- */
+    /* --- 3D Tilt Properties --- */
+    transform-style: preserve-3d;
+    transform: perspective(1000px)
+               rotateX(var(--rotate-x, 0deg)) 
+               rotateY(var(--rotate-y, 0deg));
+               
+    /* --- Smooth transition for when mouse leaves --- */
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 2. The Glow (Attached to the Main Wrapper) */
+#response-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 12px;
+    background: radial-gradient(
+        350px circle at var(--mouse-x) var(--mouse-y),
+        rgba(0, 229, 255, 0.3) 0%, /* Blue glow */
+        rgba(0, 229, 255, 0) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    z-index: 1; /* Sits ON TOP of the background */
+}
+
+/* Show the glow on hover */
+#response-box.hover-active::before {
+    opacity: 1;
+    transition: opacity 0s; /* Glow is instant while hovering */
+}
+
+/* 3. The Background/Blur/Border Layer (Your effects are here) */
+#response-box-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     
-    /* 1. The Blur (This is the "frost") */
+    /* --- YOUR FROSTED GLASS EFFECTS --- */
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px); /* For Electron/Safari */
-    
-    /* 2. The Translucent Background (like the Rive video) */
+    -webkit-backdrop-filter: blur(12px);
     background-color: rgba(255, 255, 255, 0.08);
-    
-    /* 3. The Subtle Border */
     border: 1px solid rgba(255, 255, 255, 0.2);
+    /* --- --- */
     
-    /* --- END OF FIX --- */
+    border-radius: 12px;
+    z-index: 0; /* Sits BEHIND the glow */
+}
+
+/* 4. The Scrolling Content Layer (Your text is here) */
+#response-content {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     
-    border-radius: 12px; /* Smoother corners */
-    color: white;
+    /* --- YOUR SCROLLING IS HERE --- */
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    /* --- --- */
+
+    /* Padding for the text */
     padding: 15px;
+    box-sizing: border-box; /* Ensures padding doesn't break layout */
+    
+    color: white;
     font-size: 14px;
-    overflow: hidden; /* <-- IMPORTANT: Hides highlight if we add it */
-    opacity: 1; 
-    z-index: 10; 
+    z-index: 2; /* Sits ON TOP of the glow and background */
+}
+
+
+/* 5. Styled Scrollbar */
+#response-content::-webkit-scrollbar {
+    width: 8px;
+}
+#response-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+#response-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+#response-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
 }

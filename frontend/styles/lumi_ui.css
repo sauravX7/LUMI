@@ -19,9 +19,10 @@
     font-size: 32px;
     font-weight: bold;
     letter-spacing: 4px;
-    /* --- FIX: Apply the pulsing glow animation --- */
     animation: pulse-glow 3s ease-in-out infinite;
     transition: all 0.3s ease;
+    /* This lifts the text so it's always on top */
+    z-index: 10;
 }
 
 .ring {
@@ -32,7 +33,11 @@
     border: 2px solid #00e5ff;
     opacity: 0.5;
     pointer-events: none;
-    transition: all 0.3s ease;
+    
+    /* * This transition is for when the mouse LEAVES.
+     * It smoothly fades the rings back to their idle state.
+    */
+    transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
 /* --- DEFAULT (IDLE) STATE --- */
@@ -41,14 +46,16 @@
     height: 200px;
     border-style: dashed;
     opacity: 0.3;
-    animation: spin-slow 40s linear infinite;
+    animation: spin-slow 40s linear infinite, 
+               subtle-breathe 6s ease-in-out infinite;
 }
 .ring-2 {
     width: 250px;
     height: 250px;
     border-style: solid;
     opacity: 0.7;
-    animation: spin-fast 15s linear infinite;
+    animation: spin-fast 15s linear infinite,
+               subtle-breathe 5s ease-in-out infinite reverse;
 }
 .ring-3 {
     width: 300px;
@@ -57,7 +64,6 @@
     border-style: dotted;
     animation: spin-slow 50s linear infinite;
 }
-/* --- NEW RINGS for more detail --- */
 .ring-4 {
     width: 225px;
     height: 225px;
@@ -75,27 +81,124 @@
 }
 
 
+/* --- NEW: HOVER STATE (Split, Expand, and Orbit) --- */
 
-/* --- NEW: HOVER STATE --- */
+/* 1. New keyframes for the hover-orbiting */
+@keyframes hover-orbit-fast {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@keyframes hover-orbit-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+/* 2. Create the half-ring pseudo-elements */
+.ring::before, .ring::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #ffffff; /* White hover color */
+    
+    /* Hide them by default */
+    opacity: 0;
+    
+    /* Smooth fade-in */
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    box-sizing: border-box; /* Ensures border is inside */
+}
+.ring::before {
+    clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%); /* Top half */
+}
+.ring::after {
+    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%); /* Bottom half */
+}
+
+/* 3. When hovering the main UI... */
+#lumi-ui:hover #lumi-text {
+    color: #ffffff;
+}
+
 #lumi-ui:hover .ring {
-    opacity: 1.0;
-    border-color: #ffffff;
-}
-#lumi-ui:hover .ring-2 {
-    animation-duration: 5s; /* Speeds up on hover */
+    /* Stop the idle animations */
+    animation: none;
+    
+    /* Hide the original ring border */
+    border-color: transparent;
+    opacity: 1; /* Keep parent visible for children */
+    
+    /* * THIS IS THE FIX:
+     * We override the 0.3s transition to be '0s'
+     * so the new animations can start instantly.
+    */
+    transition: all 0s;
 }
 
+#lumi-ui:hover .ring::before,
+#lumi-ui:hover .ring::after {
+    /* Show the new halves */
+    opacity: 1;
+}
+
+/* 4. Animate the halves (Expand + Open + Orbit) */
+
+/* Ring 1 */
+#lumi-ui:hover .ring-1::before {
+    transform: translateY(-5px) scale(1.1); /* Open + Expand */
+    animation: hover-orbit-fast 10s linear infinite; /* Orbit */
+}
+#lumi-ui:hover .ring-1::after {
+    transform: translateY(5px) scale(1.1);
+    animation: hover-orbit-fast 10s linear infinite;
+}
+
+/* Ring 2 */
+#lumi-ui:hover .ring-2::before {
+    transform: translateY(-10px) scale(1.15);
+    animation: hover-orbit-slow 15s linear infinite;
+}
+#lumi-ui:hover .ring-2::after {
+    transform: translateY(10px) scale(1.15);
+    animation: hover-orbit-slow 15s linear infinite;
+}
+
+/* Ring 3 */
+#lumi-ui:hover .ring-3::before {
+    transform: translateY(-15px) scale(1.2);
+    animation: hover-orbit-fast 20s linear infinite;
+}
+#lumi-ui:hover .ring-3::after {
+    transform: translateY(15px) scale(1.2);
+    animation: hover-orbit-fast 20s linear infinite;
+}
+
+/* Hide 4 & 5 for a cleaner look */
+#lumi-ui:hover .ring-4,
+#lumi-ui:hover .ring-5 {
+    border-color: transparent;
+}
 
 
 /* --- LISTENING STATE --- */
 #lumi-ui.listening #lumi-text {
     color: #ff4d4d;
     text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
-    animation: none; /* Stop the glow */
+    animation: none;
 }
 #lumi-ui.listening .ring {
     border-color: #ff4d4d;
     animation: pulse-red 1.5s ease-in-out infinite;
+    
+    /* Make sure original rings are visible */
+    opacity: 0.5;
+}
+#lumi-ui.listening .ring::before, 
+#lumi-ui.listening .ring::after {
+    /* Hide the halves */
+    opacity: 0;
+    transition: opacity 0.1s; /* Make them disappear fast */
 }
 #lumi-ui.listening .ring-3, 
 #lumi-ui.listening .ring-5 {
@@ -105,10 +208,19 @@
 /* --- THINKING STATE --- */
 #lumi-ui.thinking #lumi-text {
     color: #00e5ff;
-    animation: pulse-glow 1s ease-in-out infinite; /* Faster glow */
+    animation: pulse-glow 1s ease-in-out infinite;
 }
 #lumi-ui.thinking .ring {
     border-color: #00e5ff;
+    
+    /* Make sure original rings are visible */
+    opacity: 0.5;
+}
+#lumi-ui.thinking .ring::before, 
+#lumi-ui.thinking .ring::after {
+    /* Hide the halves */
+    opacity: 0;
+    transition: opacity 0.1s; /* Make them disappear fast */
 }
 #lumi-ui.thinking .ring-2 {
     animation: pulse-blue-spin 2s linear infinite;
