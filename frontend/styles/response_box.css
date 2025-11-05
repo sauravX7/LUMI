@@ -60,14 +60,15 @@
 /* 4. The Scrolling Content Layer (Your text is here) */
 #response-content {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0; left: 0; right: 0; 
     
-    /* --- YOUR SCROLLING IS HERE --- */
+    /* --- THIS IS THE CHANGE --- */
+    /* Make room for the status bar (30px) AND the input (40px) */
+    bottom: 70px; 
+    /* --- END OF CHANGE --- */
+    
     overflow-y: auto;
     scroll-behavior: smooth;
-    /* --- --- */
-
-    /* Padding for the text */
     padding: 15px;
     box-sizing: border-box; /* Ensures padding doesn't break layout */
     
@@ -91,4 +92,94 @@
 }
 #response-content::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* --- 6. NEW: Document Status Bar --- */
+#doc-status-bar {
+    position: absolute;
+    bottom: 40px; /* Sits on top of the 40px input field */
+    left: 0;
+    width: 100%;
+    height: 30px; /* New height for the status bar */
+    z-index: 2;
+    box-sizing: border-box;
+    padding: 0 10px 0 15px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    background-color: rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    
+    color: white;
+    font-size: 12px;
+}
+
+#doc-status-text {
+    font-style: italic;
+    opacity: 0.8;
+    /* Truncate long filenames */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+}
+
+#doc-status-bar button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: 5px;
+    flex-shrink: 0; /* Prevents button from shrinking */
+}
+#doc-status-bar button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#doc-status-bar button#clear-doc-btn {
+    padding: 2px 6px;
+    font-weight: bold;
+}
+.hidden {
+    display: none;
+}
+/* --- END OF NEW --- */
+
+
+/* --- 7. Command Input Field (Modified) --- */
+#command-input {
+    position: absolute;
+    /* Sits at the very bottom */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px; 
+    
+    z-index: 2; 
+    box-sizing: border-box; 
+    padding: 10px 15px;
+    margin: 0;
+
+    background-color: rgba(0, 0, 0, 0.3); 
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2); 
+    color: white;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    
+    outline: none;
+}
+
+#command-input:focus {
+    background-color: rgba(0, 0, 0, 0.5);
+    outline: none; 
+}
+
+#command-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }

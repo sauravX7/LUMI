@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="styles/response_box.css">
 </head>
 <body>
-<video autoplay muted loop id="bg-video">
-        <source src="./bg-video.mp4" type="video/mp4">
-    </video>
+    <div id="bg-canvas" class="liquid-ether-container"></div>
     
     <div id="lumi-ui">
         <div class="ring ring-1"></div>
@@ -26,10 +24,23 @@
         <div id="response-box-bg"></div>
 
         <div id="response-content">
-            Welcome to LUMI. Click the orb to speak.
+            Welcome to LUMI. Click the orb to speak or type below.
         </div>
+        
+        <div id="doc-status-bar">
+            <span id="doc-status-text">Chatting with: LUMI (General)</span>
+            <button id="upload-doc-btn">Upload Doc</button>
+            <button id="clear-doc-btn" class="hidden">X</button>
+        </div>
+        <input type="file" id="doc-upload-input" accept=".pdf,.png,.jpg,.jpeg" hidden>
+
+        <input type="text" id="command-input" placeholder="Type your command...">
+        
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.151.0/three.min.js"></script>
+    <script src="./LiquidEther.js"></script>
+    
     <script src="./renderer.js"></script>
 </body>
 </html>

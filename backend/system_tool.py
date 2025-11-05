@@ -12,6 +12,7 @@ from backend import speak_tool
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 # This LLM is *only* for parsing commands
+# --- FIX: Added 'google_api_key=GOOGLE_API_KEY' back in ---
 parser_llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0, google_api_key=GOOGLE_API_KEY)
 
 # --- App Map (unchanged) ---
@@ -39,8 +40,10 @@ def execute_system_command(user_input: str) -> str:
     
     try:
         response = parser_llm.invoke(parser_prompt)
-        print(f"LLM Parser output: {response.content}")
+        # --- FIX: Use .content to get string from AI Message ---
         json_str = response.content.strip().replace("`", "").replace("json", "")
+        # ---
+        print(f"LLM Parser output: {json_str}")
         command_data = json.loads(json_str)
         command = command_data.get("command")
     except Exception as e:
@@ -71,10 +74,7 @@ def execute_system_command(user_input: str) -> str:
         def timer_finished(seconds):
             text = f"Timer complete. Your {seconds} seconds are up."
             print(f"TIMER: {text}")
-            # --- THIS IS THE FIX ---
-            # Use the central speak_tool
             speak_tool.speak(text)
-            # --- END OF FIX ---
         
         threading.Timer(duration, timer_finished, args=[duration]).start()
         print(f"Executing: Timer for {duration} seconds")

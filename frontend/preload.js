@@ -18,5 +18,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
       console.error('Fetch error in preload:', error);
       throw error;
     }
+  },
+  invokeFileUpload: async (url, formData) => {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        // We DO NOT set Content-Type; browser does it for FormData
+      });
+      if (!response.ok) {
+        throw new Error(`Server returned status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('File upload error in preload:', error);
+      throw error;
+    }
   }
 });

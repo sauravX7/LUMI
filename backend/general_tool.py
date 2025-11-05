@@ -7,6 +7,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 # Create the General chain
+# --- FIX: Added 'google_api_key=GOOGLE_API_KEY' back in ---
 general_llm = ChatGoogleGenerativeAI(model="gemini-pro-latest", temperature=0.7, google_api_key=GOOGLE_API_KEY)
 general_prompt_template = "{user_input}"
 general_prompt = PromptTemplate.from_template(general_prompt_template)

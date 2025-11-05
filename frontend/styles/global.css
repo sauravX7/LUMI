@@ -4,20 +4,12 @@ html, body {
     width: 100%;
     margin: 0;
     perspective: 1000px;
+    background-color: #000000;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     
 }
 
 /* --- Global Animations --- */
-#bg-video {
-    position: fixed; /* Lock it to the viewport */
-    right: 0;
-    bottom: 0;
-    min-width: 100%; 
-    min-height: 100%;
-    z-index: -1; /* Sit behind *everything* */
-    object-fit: cover; /* Fill the screen */
-}
 
 @keyframes spin-slow {
     from { transform: rotate(0deg); }
@@ -62,3 +54,23 @@ html, body {
     margin: 4px 0 12px 0; /* Add space after AI message */
 }
 
+/* --- NEW: Liquid Ether Background Styles --- */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  /* This prevents mouse clicks from being stolen by the canvas */
+  pointer-events: none;
+}
+
+.liquid-ether-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  /* This allows mouse interaction */
+  touch-action: none; 
+}

@@ -18,3 +18,5 @@ backend/__pycache__/
 frontend/node_modules/
 frontend/package-lock.json
 
+# Uploaded documents
+uploads/
