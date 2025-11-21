@@ -13,16 +13,23 @@
     z-index: 10; 
 }
 
-/* --- LUMI Orb Styles --- */
+/* --- LUMI Orb Styles (UPDATED) --- */
 #lumi-text {
-    color: #00e5ff;
+    /* Kept from original */
     font-size: 32px;
     font-weight: bold;
     letter-spacing: 4px;
-    animation: pulse-glow 3s ease-in-out infinite;
     transition: all 0.3s ease;
-    /* This lifts the text so it's always on top */
     z-index: 10;
+
+    /* --- NEW Gradient Effect --- */
+    /* Using your logo color palette */
+    background-image: linear-gradient(to right, #00e5ff, #ffffff, #00e5ff, #ffffff, #00e5ff);
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: gradient 8s linear infinite; /* Use the new animation */
 }
 
 .ring {
@@ -118,7 +125,9 @@
 
 /* 3. When hovering the main UI... */
 #lumi-ui:hover #lumi-text {
-    color: #ffffff;
+    /* On hover, keep the gradient effect */
+    background-image: linear-gradient(to right, #ffffff, #00e5ff, #ffffff, #00e5ff, #ffffff);
+    color: transparent;
 }
 
 #lumi-ui:hover .ring {
@@ -181,9 +190,14 @@
 }
 
 
-/* --- LISTENING STATE --- */
+/* --- LISTENING STATE (UPDATED) --- */
 #lumi-ui.listening #lumi-text {
-    color: #ff4d4d;
+    /* Undo the gradient effect */
+    background-image: none;
+    background-clip: border-box; /* Reset */
+    -webkit-background-clip: border-box; /* Reset */
+    color: #ff4d4d; /* Revert to solid color */
+    
     text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
     animation: none;
 }
@@ -205,10 +219,16 @@
     opacity: 0.5;
 }
 
-/* --- THINKING STATE --- */
+/* --- THINKING STATE (UPDATED) --- */
 #lumi-ui.thinking #lumi-text {
-    color: #00e5ff;
-    animation: pulse-glow 1s ease-in-out infinite;
+    /* Keep the gradient, but make it animate faster */
+    background-image: linear-gradient(to right, #00e5ff, #ffffff, #00e5ff, #ffffff, #00e5ff);
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: gradient 3s linear infinite; /* Faster animation */
+    text-shadow: none; /* Remove any old shadow */
 }
 #lumi-ui.thinking .ring {
     border-color: #00e5ff;

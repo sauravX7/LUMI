@@ -11,6 +11,7 @@ html, body {
 
 /* --- Global Animations --- */
 
+
 @keyframes spin-slow {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -43,6 +44,17 @@ html, body {
     100% { transform: scale(1); opacity: 0.5; }
 }
 
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+   background-position: 100% 50%;
+  }
+  100% {
+   background-position: 0% 50%;
+  }
+}
 /* --- Global Chat Message Styles --- */
 .user-message {
     color: #00e5ff; /* Blue for user */

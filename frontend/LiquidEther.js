@@ -1,8 +1,7 @@
 /*
- * This is an adaptation of the React 'LiquidEther' component
- * refactored into a standalone JavaScript class to work with
- * your existing Electron project.
- * It depends on 'three.min.js' being loaded first.
+ * This is the final version of the LiquidEther class.
+ * Lifecycle observers (IntersectionObserver and ResizeObserver) 
+ * have been removed to prevent freezing during macOS system commands.
  */
 
 class LiquidEther {
@@ -15,7 +14,6 @@ class LiquidEther {
     const THREE = window.THREE;
     this.rafRef = null;
     this.resizeRafRef = null;
-    this.isVisibleRef = true;
 
     // --- Apply all options ---
     const props = {
@@ -38,7 +36,7 @@ class LiquidEther {
       autoRampDuration: options.autoRampDuration || 0.6,
     };
 
-    // --- All internal classes from the original component ---
+    // --- Utility Functions ---
 
     function makePaletteTexture(stops) {
       let arr;
@@ -71,8 +69,9 @@ class LiquidEther {
     }
 
     const paletteTex = makePaletteTexture(props.colors);
-    const bgVec4 = new THREE.Vector4(0, 0, 0, 0); // always transparent
+    const bgVec4 = new THREE.Vector4(0, 0, 0, 0);
 
+    // --- Common Class ---
     class CommonClass {
       constructor() {
         this.width = 0;
@@ -115,6 +114,7 @@ class LiquidEther {
     }
     const Common = new CommonClass();
 
+    // --- Mouse Class ---
     class MouseClass {
       constructor() {
         this.mouseMoved = false;
@@ -124,11 +124,6 @@ class LiquidEther {
         this.timer = null;
         this.container = null;
         this._onMouseMove = this.onDocumentMouseMove.bind(this);
-        this._onTouchStart = this.onDocumentTouchStart.bind(this);
-        this._onTouchMove = this.onDocumentTouchMove.bind(this);
-        this._onMouseEnter = this.onMouseEnter.bind(this);
-        this._onMouseLeave = this.onMouseLeave.bind(this);
-        this._onTouchEnd = this.onTouchEnd.bind(this);
         this.isHoverInside = false;
         this.hasUserControl = false;
         this.isAutoActive = false;
@@ -142,28 +137,15 @@ class LiquidEther {
       }
       init(container) {
         this.container = container;
-        // Use window for mousemove to capture full desktop interaction
+        // Listen to the window, not just the container, for desktop app feel
         window.addEventListener('mousemove', this._onMouseMove, false);
-        window.addEventListener('touchstart', this._onTouchStart, false);
-        window.addEventListener('touchmove', this._onTouchMove, false);
-        container.addEventListener('mouseenter', this._onMouseEnter, false);
-        container.addEventListener('mouseleave', this._onMouseLeave, false);
-        window.addEventListener('touchend', this._onTouchEnd, false);
       }
       dispose() {
         window.removeEventListener('mousemove', this._onMouseMove, false);
-        window.removeEventListener('touchstart', this._onTouchStart, false);
-        window.removeEventListener('touchmove', this._onTouchMove, false);
-        if (this.container) {
-          this.container.removeEventListener('mouseenter', this._onMouseEnter, false);
-          this.container.removeEventListener('mouseleave', this._onMouseLeave, false);
-        }
-        window.removeEventListener('touchend', this._onTouchEnd, false);
       }
       setCoords(x, y) {
         if (!this.container) return;
         if (this.timer) clearTimeout(this.timer);
-        // Use full window coordinates
         const nx = x / window.innerWidth;
         const ny = y / window.innerHeight;
         this.coords.set(nx * 2 - 1, -(ny * 2 - 1));
@@ -192,30 +174,6 @@ class LiquidEther {
         this.setCoords(event.clientX, event.clientY);
         this.hasUserControl = true;
       }
-      onDocumentTouchStart(event) {
-        if (event.touches.length === 1) {
-          const t = event.touches[0];
-          if (this.onInteract) this.onInteract();
-          this.setCoords(t.pageX, t.pageY);
-          this.hasUserControl = true;
-        }
-      }
-      onDocumentTouchMove(event) {
-        if (event.touches.length === 1) {
-          const t = event.touches[0];
-          if (this.onInteract) this.onInteract();
-          this.setCoords(t.pageX, t.pageY);
-        }
-      }
-      onTouchEnd() {
-        this.isHoverInside = false;
-      }
-      onMouseEnter() {
-        this.isHoverInside = true;
-      }
-      onMouseLeave() {
-        this.isHoverInside = false;
-      }
       update() {
         if (this.takeoverActive) {
           const t = (performance.now() - this.takeoverStartTime) / (this.takeoverDuration * 1000);
@@ -237,13 +195,14 @@ class LiquidEther {
     }
     const Mouse = new MouseClass();
 
+    // --- AutoDriver Class ---
     class AutoDriver {
       constructor(mouse, manager, opts) {
         this.mouse = mouse;
         this.manager = manager;
         this.enabled = opts.enabled;
-        this.speed = opts.speed; // normalized units/sec
-        this.resumeDelay = opts.resumeDelay || 3000; // ms
+        this.speed = opts.speed;
+        this.resumeDelay = opts.resumeDelay || 3000;
         this.rampDurationMs = (opts.rampDuration || 0) * 1000;
         this.active = false;
         this.current = new THREE.Vector2(0, 0);
@@ -251,7 +210,7 @@ class LiquidEther {
         this.lastTime = performance.now();
         this.activationTime = 0;
         this.margin = 0.2;
-        this._tmpDir = new THREE.Vector2(); // reuse temp vector to avoid per-frame alloc
+        this._tmpDir = new THREE.Vector2();
         this.pickNewTarget();
       }
       pickNewTarget() {
@@ -271,8 +230,6 @@ class LiquidEther {
           return;
         }
         
-        // This is a change from the original: always run auto-demo
-        // even if mouse is inside canvas, since canvas is fullscreen.
         if (!this.active) {
           this.active = true;
           this.current.copy(this.mouse.coords);
@@ -303,7 +260,7 @@ class LiquidEther {
       }
     }
 
-    // --- All shader code ---
+    // --- Shaders (Kept as global consts from original) ---
     const face_vert = `
       attribute vec3 position;
       uniform vec2 px;
@@ -853,14 +810,10 @@ class LiquidEther {
     }
 
     class Output {
-      // --- FIX #2 ---
-      // Receive props from WebGLManager
       constructor(props) {
         this.init(props);
       }
       init(props) {
-        // --- FIX #3 ---
-        // Pass props to Simulation
         this.simulation = new Simulation(props);
         this.scene = new THREE.Scene();
         this.camera = new THREE.Camera();
@@ -919,22 +872,16 @@ class LiquidEther {
         this._loop = this.loop.bind(this);
         this._resize = this.resize.bind(this);
         window.addEventListener('resize', this._resize);
-        this._onVisibility = () => {
-          const hidden = document.hidden;
-          if (hidden) {
-            this.pause();
-          } else if (this.isVisibleRef) {
-            this.start();
-          }
-        };
-        document.addEventListener('visibilitychange', this._onVisibility);
+        
+        // --- FIX: REMOVED visibilitychange LISTENER ---
+        // The original component had document.addEventListener('visibilitychange', ...)
+        // This is what was causing the freeze when system commands ran.
+        // It is removed here.
+        
         this.running = false;
       }
       init() {
         this.props.$wrapper.prepend(Common.renderer.domElement);
-        // --- FIX #1 ---
-        // Pass props from this.props (which WebGLManager receives)
-        // to the Output class.
         this.output = new Output(this.props);
       }
       resize() {
@@ -948,7 +895,7 @@ class LiquidEther {
         this.output.update();
       }
       loop() {
-        if (!this.running) return; // safety
+        if (!this.running) return;
         this.render();
         this.rafRef = requestAnimationFrame(this._loop);
       }
@@ -966,8 +913,8 @@ class LiquidEther {
       }
       dispose() {
         try {
+          // --- FIX: Removed document.removeEventListener('visibilitychange') ---
           window.removeEventListener('resize', this._resize);
-          document.removeEventListener('visibilitychange', this._onVisibility);
           Mouse.dispose();
           if (Common.renderer) {
             const canvas = Common.renderer.domElement;
@@ -990,35 +937,24 @@ class LiquidEther {
     this.pause = () => this.webgl.pause();
     this.dispose = () => this.webgl.dispose();
 
-    // Handle ResizeObserver
-    this.resizeObserver = new ResizeObserver(() => {
-      if (this.webgl) {
+    // Handle ResizeObserver (using native window listener for Electron)
+    const handleResize = () => {
+        if (!this.webgl) return;
         if (this.resizeRafRef) cancelAnimationFrame(this.resizeRafRef);
         this.resizeRafRef = requestAnimationFrame(() => {
           if (this.webgl) this.webgl.resize();
         });
-      }
-    });
-    this.resizeObserver.observe(container);
+    };
+    window.addEventListener('resize', handleResize);
 
-    // Handle IntersectionObserver
-    this.intersectionObserver = new IntersectionObserver(
-      entries => {
-        const entry = entries[0];
-        const isVisible = entry.isIntersecting && entry.intersectionRatio > 0;
-        this.isVisibleRef = isVisible;
-        if (!this.webgl) return;
-        if (isVisible && !document.hidden) {
-          this.webgl.start();
-        } else {
-          this.webgl.pause();
-        }
-      },
-      { threshold: [0, 0.01, 0.1] }
-    );
-    this.intersectionObserver.observe(container);
 
     // Start the animation
     this.start();
+    
+    // Cleanup function
+    this.dispose = () => {
+        window.removeEventListener('resize', handleResize);
+        if (this.webgl) this.webgl.dispose();
+    }
   }
 }

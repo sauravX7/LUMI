@@ -9,8 +9,8 @@ function createWindow () {
     height: height,
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      contextIsolation: true
+      // --- PRELOAD SCRIPT REMOVED ---
     },
     
     // --- THIS IS THE FIX ---

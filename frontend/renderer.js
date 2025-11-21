@@ -17,6 +17,40 @@ const clearDocBtn = document.getElementById('clear-doc-btn');
 const docUploadInput = document.getElementById('doc-upload-input');
 // --- END NEW ---
 
+// --- NEW HELPER: Replaces preload.js ---
+/**
+ * This function now uses window.fetch() directly,
+ * bypassing the broken context bridge.
+ */
+async function invokeAPI(url, options) {
+    try {
+        const isFormData = options.body instanceof FormData;
+
+        if (!isFormData) {
+            // Stringify JSON body
+            options.body = JSON.stringify(options.body);
+            if (!options.headers) {
+                options.headers = {};
+            }
+            options.headers['Content-Type'] = 'application/json';
+        }
+        // If it's FormData, we do NOT set Content-Type header
+
+        const response = await fetch(url, options);
+        const data = await response.json(); 
+
+        if (!response.ok) {
+            throw new Error(data.message || `Server returned status: ${response.status}`);
+        }
+        return data;
+
+    } catch (error) {
+        console.error('Fetch error in renderer:', error);
+        throw error;
+    }
+}
+// --- END NEW HELPER ---
+
 
 // --- NEW: Helper function to add messages to the chat ---
 function addMessageToChat(author, text) {
@@ -78,7 +112,8 @@ lumiUI.addEventListener('click', () => {
   const listeningP = addMessageToChat('system', 'Listening...');
 
   // 2. Start the API call
-  window.electronAPI.invokeAPI('http://127.0.0.1:5001/listen', { method: 'POST' })
+  // --- UPDATED: Using new invokeAPI function ---
+  invokeAPI('http://127.0.0.1:5001/listen', { method: 'POST' })
     .then(data => { 
       lumiUI.classList.remove('thinking');
       isListening = false;
@@ -103,7 +138,7 @@ lumiUI.addEventListener('click', () => {
       if (responseContent.contains(listeningP)) { 
           responseContent.removeChild(listeningP); 
       }
-      addMessageToChat('error', 'Could not connect to the brain.');
+      addMessageToChat('error', error.message || 'Could not connect to the brain.');
     });
     
   // 3. Start a 5-second timer to match the recording time
@@ -131,24 +166,23 @@ commandInput.addEventListener('keydown', (event) => {
         addMessageToChat('user', userText);
 
         let endpoint = '';
-        let body = {};
+        let options = {
+            method: 'POST'
+        };
 
         if (isDocumentMode) {
             // --- Route to Document Q&A ---
             endpoint = 'http://127.0.0.1:5001/ask-document';
-            body = { user_input: userText };
+            options.body = { user_input: userText };
         } else {
             // --- Route to General Text Command ---
+            endpoint = 'http://1.0.0.1:5001/text-command'; // <--- There was a typo here, fixed to 127.0.0.1
             endpoint = 'http://127.0.0.1:5001/text-command';
-            body = { user_input: userText };
+            options.body = { user_input: userText };
         }
         
-        // 2. Start the API call
-        window.electronAPI.invokeAPI(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
+        // 2. Start the API call (using new invokeAPI function)
+        invokeAPI(endpoint, options)
         .then(data => {
             setProcessingState(false);
             console.log(`Got response from ${endpoint}:`, data);
@@ -157,14 +191,14 @@ commandInput.addEventListener('keydown', (event) => {
         .catch(error => {
             console.error(`Error calling ${endpoint}:`, error);
             setProcessingState(false);
-            addMessageToChat('error', 'Could not connect to the brain.');
+            addMessageToChat('error', error.message || 'Could not connect to the brain.');
         });
     }
 });
 // --- END OF MODIFIED HANDLER ---
 
 
-// --- NEW: Document Upload Listeners ---
+// --- NEW: Document Upload Listeners (MODIFIED) ---
 uploadDocBtn.addEventListener('click', () => {
     docUploadInput.click(); // Trigger the hidden file input
 });
@@ -176,10 +210,6 @@ clearDocBtn.addEventListener('click', () => {
     clearDocBtn.classList.add('hidden');
     commandInput.placeholder = "Type your command...";
     addMessageToChat('system', 'Document session cleared. You are now talking to LUMI.');
-    
-    // We can also (optionally) tell the backend to clear its memory,
-    // but for now, just changing the frontend state is enough.
-    // The backend will just overwrite the chain on the next upload.
 });
 
 docUploadInput.addEventListener('change', (event) => {
@@ -191,9 +221,15 @@ docUploadInput.addEventListener('change', (event) => {
     addMessageToChat('system', `Uploading and processing ${file.name}...`);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file); // <-- key is 'file'
 
-    window.electronAPI.invokeFileUpload('http://127.0.0.1:5001/upload', formData)
+    // --- THIS IS THE FIX ---
+    // We now call our *new* invokeAPI function
+    invokeAPI('http://127.0.0.1:5001/upload', {
+        method: 'POST',
+        body: formData
+    })
+    // --- END OF FIX ---
         .then(data => {
             setProcessingState(false);
             uploadDocBtn.disabled = false;
@@ -201,7 +237,6 @@ docUploadInput.addEventListener('change', (event) => {
             // Handle success
             isDocumentMode = true;
             currentDocumentName = file.name;
-            // Truncate name if too long for status bar
             const displayName = currentDocumentName.length > 20 ? currentDocumentName.substring(0, 17) + '...' : currentDocumentName;
             docStatusText.innerText = `Chatting with: ${displayName}`;
             clearDocBtn.classList.remove('hidden');
@@ -220,33 +255,25 @@ docUploadInput.addEventListener('change', (event) => {
 // --- END OF NEW LISTENERS ---
 
 
-// --- 3D TILT + GLOW EFFECT (Unchanged, with typo fix) ---
+// --- 3D TILT + GLOW EFFECT ---
 responseBox.addEventListener('mousemove', (e) => {
     const rect = responseBox.getBoundingClientRect();
     
-    // 1. Calculate mouse for GLOW (relative to top-left)
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // 2. Calculate mouse for TILT (relative to center)
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     const deltaX = x - centerX;
     const deltaY = y - centerY;
     
-    // Define a max rotation
     const maxRotate = 8; 
     
     const rotateY = (deltaX / centerX) * maxRotate;
     const rotateX = -(deltaY / centerY) * maxRotate;
     
-    // Set all CSS properties at once
     responseBox.style.setProperty('--mouse-x', `${x}px`);
-    
-    // --- THIS IS THE FIX ---
-    responseBox.style.setProperty('--mouse-y', `${y}px`); // Was ypx
-    // --- END OF FIX ---
-    
+    responseBox.style.setProperty('--mouse-y', `${y}px`);
     responseBox.style.setProperty('--rotate-x', `${rotateX}deg`);
     responseBox.style.setProperty('--rotate-y', `${rotateY}deg`);
 });
@@ -258,11 +285,11 @@ responseBox.addEventListener('mouseenter', () => {
 responseBox.addEventListener('mouseleave', () => {
     responseBox.classList.remove('hover-active');
     
-    // Reset tilt properties to let the CSS transition back
     responseBox.style.setProperty('--rotate-x', '0deg');
     responseBox.style.setProperty('--rotate-y', '0deg');
 });
 
+// --- NEW: Initialize Liquid Ether Background ---
 window.addEventListener('DOMContentLoaded', () => {
     const bgCanvas = document.getElementById('bg-canvas');
     if (bgCanvas) {
